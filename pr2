@@ -1,0 +1,16 @@
+Code:-
+room_a = input("Is Room A dirty? (yes/no): ").strip().lower()
+room_b = input("Is Room B dirty? (yes/no): ").strip().lower()
+print("Vacuum Cleaner starting in Room A")
+if room_a == "yes":
+    print("Cleaning Room A")
+    room_a = "no"
+else:
+    print("Room A is clean. Moving to Room B")
+if room_b == "yes":
+    print("Cleaning Room B")
+    room_b = "no"
+else:
+    print("Room B is clean. Moving back to Room A")
+if room_a == "no" and room_b == "no":
+    print("Both rooms are clean now!")
