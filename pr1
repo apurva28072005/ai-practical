@@ -1,0 +1,9 @@
+def smart_light(outside_light, human_presence):
+   if human_presence and not outside_light:
+        return "ON"
+    else:
+        return "OFF"
+outside_light = input("Is outside light available? (yes/no): ").strip().lower() == "yes"
+human_presence = input("Is human present in the room? (yes/no): ").strip().lower() == "yes"
+light_state = smart_light(outside_light, human_presence)
+print(f"Smart Light is: {light_state}")
