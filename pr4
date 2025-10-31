@@ -1,0 +1,194 @@
+import heapq
+
+def a_star_search(city_map, start, goal):
+    """
+    Finds the lowest-cost path from start to goal using A* search.
+
+    :param city_map: A 2D list (grid) representing the city map with movement costs.
+    :param start: A tuple (row, col) for the starting position.
+    :param goal: A tuple (row, col) for the goal position.
+    :return: A tuple (path, cost) of the optimal path and its total cost, or (None, -1) if no path is found.
+    """
+    rows, cols = len(city_map), len(city_map[0])
+
+    # 1. Initialization
+    # g_score: actual cost from start to n. Initialize all to infinity.
+    # We use a dict for sparse storage, only storing calculated g_scores.
+    g_score = {start: 0}
+
+    # f_score: estimated total cost (g_score + h_score).
+    # The priority queue stores tuples: (f_score, node)
+    open_list = [(heuristic(start, goal), start)]
+
+    # came_from: tracks the most efficient previous node for reconstructing the path.
+    came_from = {}
+
+    # Define possible moves (Up, Down, Left, Right)
+    # The cost to move is given by the cell's weight in the map.
+    moves = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+    # 2. Search Loop
+    while open_list:
+        # Get the node with the lowest f_score from the priority queue
+        f_current, current = heapq.heappop(open_list)
+
+        # Check if we have reached the goal
+        if current == goal:3
+            3
+            # Path reconstruction and return
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            path.append(start)
+            path.reverse()
+            return path, g_score[goal]
+
+        # Explore neighbors
+        for dr, dc in moves:
+            neighbor = (current[0] + dr, current[1] + dc)
+            r, c = neighbor
+
+            # Check for bounds and obstacles (e.g., 'X')
+            if 0 <= r < rows and 0 <= c < cols and city_map[r][c] != 'X':
+                # The movement cost to enter the neighbor cell
+                # We assume the map contains integers/floats for cost.
+                move_cost = city_map[r][c]
+               
+                # tentative_g_score is the cost of the path from start to neighbor through current
+                tentative_g_score = g_score[current] + move_cost
+
+                # Check if this new path to the neighbor is better
+                if neighbor not in g_score or tentative_g_score < g_score.get(neighbor, float('inf')):
+                    # This path is better. Record it.
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g_score
+                    f_score = tentative_g_score + heuristic(neighbor, goal)
+                   
+                    # Add to the open list or update if already present
+                    heapq.heappush(open_list, (f_score, neighbor))
+   
+    # Path not found
+    return None, -1
+
+def heuristic(a, b):
+    """
+    The Manhattan distance heuristic for a grid.
+    (This is an admissible heuristic for a grid map where movement cost is positive).
+    """
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+def get_user_map_input():
+    """Reads map and costs from user input."""
+    print("--- Map Setup ---")
+   
+    while True:
+        try:
+            R = int(input("Enter number of rows (R): "))
+            C = int(input("Enter number of columns (C): "))
+            if R > 0 and C > 0:
+                break
+            else:
+                print("Rows and columns must be positive integers.")
+        except ValueError:
+            print("Invalid input. Please enter an integer.")
+
+    print("\nEnter map weights (costs), row by row, separated by spaces.")
+    print("Use 'X' for an unpassable block.")
+    print(f"Example for a 3x3 map: \n1 1 5\n1 X 1\n1 1 1")
+   
+    city_map = []
+    for i in range(R):
+        while True:
+            row_str = input(f"Row {i} (space-separated costs/X): ").split()
+            if len(row_str) != C:
+                print(f"Error: Expected {C} values, got {len(row_str)}. Try again.")
+                continue
+           
+            row = []
+            valid_row = True
+            for item in row_str:
+                if item.upper() == 'X':
+                    row.append('X')
+                else:
+                    try:
+                        cost = float(item)
+                        if cost < 0:
+                             print("Cost must be non-negative.")
+                             valid_row = False
+                             break
+                        row.append(cost)
+                    except ValueError:
+                        print("Invalid cost value. Enter a non-negative number or 'X'.")
+                        valid_row = False
+                        break
+           
+            if valid_row:
+                city_map.append(row)
+                break
+
+    return city_map, R, C
+
+def get_user_coordinates(R, C, prompt):
+    """Reads and validates start/goal coordinates from user input."""
+    while True:
+        try:
+            coords_str = input(f"Enter {prompt} coordinates (row, col, 0-indexed): ")
+            r, c = map(int, coords_str.replace(' ', '').split(','))
+           
+            if 0 <= r < R and 0 <= c < C:
+                return (r, c)
+            else:
+                print(f"Coordinates out of bounds. Must be between (0, 0) and ({R-1}, {C-1}).")
+        except ValueError:
+            print("Invalid format. Please enter two integers separated by a comma (e.g., 0,2).")
+
+def print_result(path, cost, city_map, start, goal):
+    """Prints the map and the result."""
+    print("\n" + "="*40)
+    print("A* Search Result")
+    print("="*40)
+
+    if path:
+        print(f" Optimal Path Found with Total Cost: {cost}")
+        print(f"Path (row, col): {path}")
+
+        # Visualize the path on the map
+        R, C = len(city_map), len(city_map[0])
+        visual_map = [row[:] for row in city_map] # Copy the map
+       
+        for r, c in path:
+            if (r, c) != start and (r, c) != goal:
+                visual_map[r][c] = ' * '
+            elif (r, c) == start:
+                visual_map[r][c] = ' S '
+            elif (r, c) == goal:
+                visual_map[r][c] = ' G '
+       
+        print("\nMap Visualization (* = Path, S = Start, G = Goal):")
+       
+        # Adjust costs to be strings for alignment
+        for r in range(R):
+            for c in range(C):
+                if not isinstance(visual_map[r][c], str):
+                    visual_map[r][c] = f"{visual_map[r][c]:.0f}".center(3)
+
+            print(" ".join(visual_map[r]))
+
+    else:
+        print(" Path Not Found.")
+       
+# --- Main Execution Block ---
+if __name__ == "__main__":
+    city_map, R, C = get_user_map_input()
+   
+    start_pos = get_user_coordinates(R, C, "Start")
+    if city_map[start_pos[0]][start_pos[1]] == 'X':
+        print("Start position cannot be an obstacle ('X'). Exiting.")
+    else:
+        goal_pos = get_user_coordinates(R, C, "Goal")
+        if city_map[goal_pos[0]][goal_pos[1]] == 'X':
+            print("Goal position cannot be an obstacle ('X'). Exiting.")
+        else:
+            path, cost = a_star_search(city_map, start_pos, goal_pos)
+            print_result(path, cost, city_map, start_pos, goal_pos)
