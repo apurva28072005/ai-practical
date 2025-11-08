@@ -1,0 +1,38 @@
+mport random
+neighbors = {
+    'A': ['B', 'C'],
+    'B': ['A', 'C', 'D'],
+    'C': ['A', 'B', 'D', 'E'],
+    'D': ['B', 'C', 'E'],
+    'E': ['C', 'D']
+}
+
+colors = ['Red', 'Green', 'Blue']
+
+def random_coloring():
+    return {region: random.choice(colors) for region in neighbors}
+
+def count_conflicts(region, color, assignment):
+    return sum(assignment[n] == color for n in neighbors[region])
+min_conflicts(max_steps=1000):
+    assignment = random_coloring()
+
+    for step in range(max_steps):
+ 
+        conflicted = [r for r in neighbors if count_conflicts(r, assignment[r], assignment) > 0]
+        if not conflicted:
+            return assignment  
+
+        region = random.choice(conflicted)
+     
+        min_conflict_color = min(colors, key=lambda c: count_conflicts(region, c, assignment))
+        assignment[region] = min_conflict_color
+
+    return None  
+solution = min_conflicts()
+if solution:
+    print("Solution found:")
+    for region, color in solution.items():
+        print(f"{region}: {color}")
+else:
+    print("No solution found")
